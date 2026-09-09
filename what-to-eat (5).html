@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What do you want to eat?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --paper:#fff8ee;
+    --red:#c1272d;
+    --coral:#e8622d;
+    --teal:#1f7a6c;
+    --mustard:#e8a33d;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    color: var(--ink);
+  }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, var(--red) 0 40px, transparent 40px 80px),
+      repeating-linear-gradient(90deg, var(--red) 0 40px, transparent 40px 80px);
+    background-blend-mode: multiply;
+    opacity: 1;
+    position: relative;
+  }
+
+  body::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(193,39,45,.55) 0 40px, transparent 40px 80px),
+      repeating-linear-gradient(90deg, rgba(193,39,45,.55) 0 40px, transparent 40px 80px),
+      #fff8ee;
+    z-index: -1;
+  }
+
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hidden { display: none !important; }
+
+  .card {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 18px;
+    box-shadow: 8px 8px 0 var(--ink);
+    padding: 40px 36px 44px;
+    width: min(90vw, 420px);
+    text-align: center;
+    transform: rotate(-1.2deg);
+  }
+
+  .card h1 {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 38px;
+    line-height: 1.15;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+
+  .card .sub {
+    font-size: 13px;
+    color: #6b6b6b;
+    margin: 0 0 28px;
+    letter-spacing: .02em;
+  }
+
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .choice-btn {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .08s ease;
+  }
+
+  .choice-btn:active { transform: scale(0.97); }
+
+  #chinese { background: var(--coral); }
+  #korean  { background: var(--teal); }
+  #safe    { background: var(--mustard); color: var(--ink); }
+
+  .dodge {
+    position: fixed;
+    z-index: 50;
+    transition: top .16s cubic-bezier(.2,1.4,.6,1), left .16s cubic-bezier(.2,1.4,.6,1), transform .16s ease;
+  }
+
+  /* Result screen */
+  .result-card {
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 18px;
+    box-shadow: 8px 8px 0 var(--ink);
+    padding: 44px 38px;
+    width: min(90vw, 440px);
+    text-align: center;
+    transform: rotate(0.8deg);
+  }
+
+  .result-card .badge {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 8px;
+  }
+
+  .result-card h2 {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 40px;
+    margin: 4px 0 10px;
+    color: var(--red);
+  }
+
+  .result-card p {
+    font-size: 14px;
+    color: #6b6b6b;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .goodbye-card {
+    width: min(90vw, 460px);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .goodbye-card .leaf {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 4px;
+  }
+
+  .goodbye-text {
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.7;
+    text-align: left;
+    margin: 14px 0;
+  }
+
+  .goodbye-signoff {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--red);
+    margin: 18px 0 0;
+  }
+
+  .again {
+    margin-top: 26px;
+    background: none;
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 32px 24px 36px; }
+    .card h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="screen" id="question-screen">
+    <div class="card">
+      <h1>Hey Nat, what do you want to eat?</h1>
+      <p class="sub">it's free!</p>
+      <div class="choices">
+        <button class="choice-btn" id="chinese">Chinese food</button>
+        <button class="choice-btn" id="korean">Korean food</button>
+        <button class="choice-btn" id="safe">Nothing too oily</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="result-screen">
+    <div class="result-card">
+      <svg class="badge" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pajo's Fish and Chips badge">
+        <circle cx="80" cy="80" r="74" fill="#fff8ee" stroke="#1a1a1a" stroke-width="4"/>
+        <circle cx="80" cy="80" r="64" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <text x="80" y="42" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="700" font-size="21" fill="#1a1a1a">Pajo's</text>
+
+        <g transform="translate(48,68)">
+          <path d="M6 22 C6 8 22 0 40 0 C54 0 62 8 66 16 L78 6 L74 22 L78 38 L66 28 C62 36 54 44 40 44 C22 44 6 36 6 22 Z" fill="#e8a33d" stroke="#1a1a1a" stroke-width="2.5"/>
+          <circle cx="20" cy="18" r="3" fill="#1a1a1a"/>
+          <path d="M40 22 C46 18 52 18 58 22 C52 26 46 26 40 22 Z" fill="#fff8ee" stroke="#1a1a1a" stroke-width="1.5"/>
+        </g>
+
+        <g transform="translate(58,102)">
+          <rect x="0" y="4" width="6" height="20" rx="2" fill="#e8622d" stroke="#1a1a1a" stroke-width="1.5" transform="rotate(-8 3 14)"/>
+          <rect x="9" y="0" width="6" height="24" rx="2" fill="#e8a33d" stroke="#1a1a1a" stroke-width="1.5"/>
+          <rect x="18" y="3" width="6" height="21" rx="2" fill="#e8622d" stroke="#1a1a1a" stroke-width="1.5" transform="rotate(8 21 14)"/>
+          <rect x="27" y="1" width="6" height="23" rx="2" fill="#e8a33d" stroke="#1a1a1a" stroke-width="1.5"/>
+          <rect x="36" y="5" width="6" height="19" rx="2" fill="#e8622d" stroke="#1a1a1a" stroke-width="1.5" transform="rotate(-6 39 14)"/>
+        </g>
+
+        <text x="80" y="140" text-anchor="middle" font-family="Poppins, sans-serif" font-weight="600" font-size="11" letter-spacing="1.5" fill="#c1272d">FISH &amp; CHIPS</text>
+      </svg>
+      <h2>Great, you picked fish and chips!</h2>
+      <p>Complimentary drinks. Complimentary 2 hour wait.</p>
+      <button class="again" id="next-btn">continue</button>
+    </div>
+  </div>
+
+  <div class="screen hidden" id="goodbye-screen">
+    <div class="result-card goodbye-card">
+      <svg class="leaf" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Maple leaf">
+        <path d="M50 6 L58 26 L76 16 L70 34 L90 38 L74 50 L86 62 L66 60 L68 78 L54 66 L50 94 L46 66 L32 78 L34 60 L14 62 L26 50 L10 38 L30 34 L24 16 L42 26 Z" fill="#c1272d" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+      <h2>Have fun in Toronto!</h2>
+      <p class="goodbye-text">
+        Hey Nat, thanks for teaching me how to rizz my gf. I'm not a guy with
+        many words, and I'm socially awkward. I feel like I don't understand
+        love, but I do understand family. Since we've known each other for so
+        long, I think I subconsciously thought of you as one.
+      </p>
+      <p class="goodbye-text">
+        So yes, I may cry a little when you leave, but I'm happy for you —
+        live your
+        life well in Toronto. If you're lonely and don't want to talk to your
+        parents or Janis, send me a message or call. We may not talk much,
+        but I feel like we can always understand each other. Just like at
+        church, I will be supporting you from a distance.
+      </p>
+      <p class="goodbye-signoff">帅哥 — Kevin Xu</p>
+    </div>
+  </div>
+
+<script>
+  // --- tiny synth, no audio files needed ---
+  let audioCtx;
+  function getCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playKoreanRiff() {
+    // higher, springier boing
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    const now = ctx.currentTime;
+    osc.frequency.setValueAtTime(500, now);
+    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.07);
+    osc.frequency.exponentialRampToValueAtTime(420, now + 0.15);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.2, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
+  function playChineseRiff() {
+    // lower, wobblier boing
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    const now = ctx.currentTime;
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.24);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.2, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.28);
+  }
+
+  const dodgeCooldown = {};
+  function playDodgeRiff(id) {
+    const now = Date.now();
+    if (dodgeCooldown[id] && now - dodgeCooldown[id] < 500) return;
+    dodgeCooldown[id] = now;
+    if (id === 'korean') playKoreanRiff();
+    if (id === 'chinese') playChineseRiff();
+  }
+
+  function playSuccessSound() {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      const start = now + i * 0.09;
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.16, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.28);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.3);
+    });
+  }
+
+  const dodgers = ['chinese', 'korean'].map(id => document.getElementById(id));
+  const margin = 16;
+
+  function moveTo(btn, { silent } = {}) {
+    if (!btn.classList.contains('dodge')) {
+      const rect = btn.getBoundingClientRect();
+      btn.classList.add('dodge');
+      // The card has a CSS transform on it, which makes it the containing
+      // block for any position:fixed descendants. That traps the button's
+      // coordinates inside the small rotated card instead of the real
+      // viewport, so it looks like it "disappears" off to the side.
+      // Moving it to be a direct child of <body> fixes that.
+      document.body.appendChild(btn);
+      btn.style.left = rect.left + 'px';
+      btn.style.top = rect.top + 'px';
+      // force reflow so the transition kicks in on the next frame
+      void btn.offsetWidth;
+    }
+
+    const vw = (window.visualViewport && window.visualViewport.width) || window.innerWidth;
+    const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    const w = btn.offsetWidth;
+    const h = btn.offsetHeight;
+    const maxLeft = Math.max(margin, vw - w - margin);
+    const maxTop = Math.max(margin, vh - h - margin);
+    const left = margin + Math.random() * (maxLeft - margin);
+    const top = margin + Math.random() * (maxTop - margin);
+
+    btn.style.left = left + 'px';
+    btn.style.top = top + 'px';
+    btn.style.transform = 'rotate(0deg)';
+    if (!silent) playDodgeRiff(btn.id);
+  }
+
+  function dodge(btn) {
+    moveTo(btn);
+  }
+
+  dodgers.forEach(btn => {
+    btn.addEventListener('mouseenter', () => dodge(btn));
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      dodge(btn);
+    }, { passive: false });
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      dodge(btn);
+    });
+  });
+
+  document.getElementById('safe').addEventListener('click', () => {
+    playSuccessSound();
+    document.getElementById('question-screen').classList.add('hidden');
+    dodgers.forEach(btn => btn.classList.add('hidden'));
+    document.getElementById('result-screen').classList.remove('hidden');
+  });
+
+  document.getElementById('next-btn').addEventListener('click', () => {
+    document.getElementById('result-screen').classList.add('hidden');
+    document.getElementById('goodbye-screen').classList.remove('hidden');
+  });
+</script>
+
+</body>
+</html>
